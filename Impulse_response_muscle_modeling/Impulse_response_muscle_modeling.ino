@@ -241,7 +241,6 @@ void loop() {
     //Serial.println("q"); // Exit python program
     //Do not disable all interrupts
     while(1);
-
 }
 
 ISR(ANALOG_COMP_vect){
@@ -258,12 +257,10 @@ ISR(ANALOG_COMP_vect){
   //prev_pulse_time = new_pulse_time;
 
   if (data_capture_ON == false){
-    // If data is not already being sampled
+    // If data is not already being sampled - to avoid over-writing the arrays
     // Start data sampling timers
     TCCR3B = 0x01; // measure stim voltage using TIMER 3
     TCCR1B = 0x04; // measure force response using TIMER 1
-    // Tell main loop that stim is received so it can increment stimulator
-    stim_recvd = true;
     digitalWrite(stim_received_LED_pin,HIGH);
     data_capture_ON == true;
   }
@@ -287,9 +284,7 @@ ISR(TIMER1_OVF_vect){
     }
     Serial.println("");
     Serial.flush();   // Wait until all data has been sent
-    
     //Serial.println("Force measurements sent");
-    
   }
 }
 
@@ -305,8 +300,11 @@ ISR(TIMER3_OVF_vect){
     stim_sample_counter = 0;
     ACSR |= (1<<ACI);    // One trial complete- Now enable analog comparator interrupt and clear pending interrupts
     ACSR |= (1<<ACIE);   // Need to ensure that sencond stimulus doesn't appear with 2 seconds of first stimulus
-        
+
+    // Tell main loop that stim is received so it can increment stimulator
+    stim_recvd = true;
     digitalWrite(stim_received_LED_pin,LOW);
+    
     for(int cnt = 0; cnt < array_len(stim_voltage_array); cnt++){
       Serial.print(stim_voltage_array[cnt]);
       if (cnt < array_len(stim_voltage_array)-1){
@@ -317,4 +315,3 @@ ISR(TIMER3_OVF_vect){
     Serial.flush();   // Wait until all data has been sent
   }
 }
-

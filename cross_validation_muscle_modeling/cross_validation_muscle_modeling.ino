@@ -168,29 +168,16 @@ void loop() {
       }
       // Wait for 5 trials 
       for (int trial_no = 1; trial_no <= Number_of_trials_per_inc; trial_no++){
+          Serial.println("Inc 1, Trial " + String(trial_no)); 
           while(!stim_recvd){       // 1st measurement
               digitalWrite(end_of_stim_LED_pin, HIGH);
-              delay(300);
+              delay(100);
               digitalWrite(end_of_stim_LED_pin, LOW);
-              delay(300);  
+              delay(100);  
           }
           stim_recvd = false;
-          Serial.println("Inc 1, Trial " + String(trial_no)); 
       }
-        
-        /*************************************************************DEBUGGING
-         * for(int j = 1; j<=5; j++){
-          digitalWrite(end_of_stim_LED_pin, HIGH);
-          delay(300);
-          digitalWrite(end_of_stim_LED_pin, LOW);
-          delay(300);
-        }
-        digitalWrite(test_trigger_pin,HIGH);
-        delayMicroseconds(500);
-        digitalWrite(test_trigger_pin,LOW);
-        while(!stim_recvd);
-        */
-          
+                 
       // Increase again by 10 increments immediately
       for(int i=1; i <= 10; i++){
         digitalWrite(ens_UP_pin,LOW);
@@ -200,14 +187,14 @@ void loop() {
       }
       // Wait for 5 trials 
       for (int trial_no = 1; trial_no <= Number_of_trials_per_inc; trial_no++){
+          Serial.println("Inc 2, Trial " + String(trial_no)); 
           while(!stim_recvd){       // 1st measurement
             digitalWrite(end_of_stim_LED_pin, HIGH);
-            delay(300);
+            delay(100);
             digitalWrite(end_of_stim_LED_pin, LOW);
-            delay(300);  
+            delay(100);  
           }
           stim_recvd = false;
-          Serial.println("Inc 2, Trial " + String(trial_no)); 
       }
 
       // Finally, increase by 5 increments immediately
@@ -219,14 +206,14 @@ void loop() {
       }
       // Wait for 5 trials 
       for (int trial_no = 1; trial_no <= Number_of_trials_per_inc; trial_no++){
+          Serial.println("Inc 3, Trial " + String(trial_no));
           while(!stim_recvd){       // 1st measurement
           digitalWrite(end_of_stim_LED_pin, HIGH);
-          delay(300);
+          delay(100);
           digitalWrite(end_of_stim_LED_pin, LOW);
-          delay(300);  
+          delay(100);  
           }
           stim_recvd = false;
-          Serial.println("Inc 3, Trial " + String(trial_no));
       }
           
       // Turn OFF the stimulator
@@ -234,7 +221,7 @@ void loop() {
       delay(keypress_interval_very_long);
       digitalWrite(ens_MENU_pin,HIGH); 
       
-      delay(3000);
+      delay(1000);
       Serial.println("");
       Serial.println("Rep " + String(rep_num) + "of " + String(Total_num_of_stim_repetitions) + " completed. Continue? [y/n]: ");
       while(Serial.read() != 'y'){
@@ -253,7 +240,6 @@ void loop() {
     //Serial.println("q"); // Exit python program
     //Do not disable all interrupts
     while(1);
-
 }
 
 ISR(ANALOG_COMP_vect){
@@ -270,7 +256,7 @@ ISR(ANALOG_COMP_vect){
   //prev_pulse_time = new_pulse_time;
 
   if (data_capture_ON == false){
-    // If data is not already being sampled
+    // If data is not already being sampled - to avoid over-writing the arrays
     // Start data sampling timers
     TCCR3B = 0x01; // measure stim voltage using TIMER 3
     TCCR1B = 0x04; // measure force response using TIMER 1
@@ -298,9 +284,7 @@ ISR(TIMER1_OVF_vect){
     }
     Serial.println("");
     Serial.flush();   // Wait until all data has been sent
-    
     //Serial.println("Force measurements sent");
-    
   }
 }
 
@@ -318,8 +302,8 @@ ISR(TIMER3_OVF_vect){
 
     // Tell main loop that stim is received so it can increment stimulator
     stim_recvd = true;
-    
     digitalWrite(stim_received_LED_pin,LOW);
+    
     for(int cnt = 0; cnt < array_len(stim_voltage_array); cnt++){
       Serial.print(stim_voltage_array[cnt]);
       if (cnt < array_len(stim_voltage_array)-1){
