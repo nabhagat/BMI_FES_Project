@@ -54,7 +54,7 @@ int movement_onset_value = 5; // whether trigger is high(5) or low(0)
 const int force_threshold = 50;
 const int keypress_interval = 500;
 const int keypress_int_short = 200;
-const int num_voltage_increments = 20;
+const int num_voltage_increments = 40;
 
 /* 
  *  ISR for Timer 1 - Sends serial data for logging to Python GUI

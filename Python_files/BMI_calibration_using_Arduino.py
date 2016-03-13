@@ -10,8 +10,18 @@ import logging, os
 
 folder_path = os.getcwd()
 
-myfilename = os.getcwd() + '/NJBT_ses1_cond2_block3_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
-f_obj = open(myfilename,'w')
+myfilename1 = os.getcwd() + '/NJBT_sesX_stim_input_block0_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
+myfilename2 = os.getcwd() + '/NJBT_sesX_force_response_block0_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
+
+f_stim_input_obj = open(myfilename1,'w')
+f_stim_input_obj.write("""Stimulation input, sampling frequency 4000 Hz.
+File created on: """)
+f_stim_input_obj.write(time.strftime("%m-%d-%Y_%H:%M:%S")+'\r\n')
+
+f_force_response_obj = open(myfilename2,'w')
+f_force_response_obj.write("""Force response, sampling frequency 100 Hz.
+File created on: """)
+f_force_response_obj.write(time.strftime("%m-%d-%Y_%H:%M:%S")+'\r\n')
 
 #logging.basicConfig(filename = myfilename + time.strftime("%m-%d-%Y_%H_%M_%S.txt"),loglevel = logging.NOTSET, format = '%(message)s')
 
@@ -26,10 +36,17 @@ command = ""
 while True:
     while ser.inWaiting() != 0:
         output = ser.readline()
-        print output
+        if len(output) >= 2000:
+            f_stim_input_obj.write(output)
+            print output
+        elif len(output) >= 200:
+            f_force_response_obj.write(output)
+            print output
+        else:
+            print output
         #logging.info(output)
         #print '.',
-        f_obj.write(output)
+        #f_obj.write(output)
     device_i, device_o, device_e = select.select( [sys.stdin], [], [], 0.1)
     if (device_i):
         command = sys.stdin.readline().strip()
@@ -41,5 +58,7 @@ while True:
             ser.write(command + "\n")
             #print "\ncommand sent"       
 ser.close()
-f_obj.close()
+#f_obj.close()
+f_stim_input_obj.close()
+f_force_response_obj.close()
 print "End of program."

@@ -8,7 +8,7 @@ int movement_onset_pin = 32;
 int target_LED_pin = 27;    
 int error_LED_pin  = 31;    // Use to indicate false start 
 int analog_force_sensor_pin = A15; 
-int analog_stim_voltage_pin = A13; 
+int analog_stim_voltage_pin = A14; 
 int Total_num_of_trials = 0;
 int ledPin = 13;
 
