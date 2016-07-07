@@ -10,8 +10,10 @@ import logging, os
 
 folder_path = os.getcwd()
 
-myfilename1 = os.getcwd() + '/NJBT_sesX_stim_input_block0_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
-myfilename2 = os.getcwd() + '/NJBT_sesX_force_response_block0_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
+#myfilename1 = os.getcwd() + '/NJBT_FD_impulse_input_block5_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
+#myfilename2 = os.getcwd() + '/NJBT_FD_impulse_response_block5_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
+myfilename1 = os.getcwd() + '/NJBT_FPB_impulse_input_block2_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
+myfilename2 = os.getcwd() + '/NJBT_FPB_impulse_response_block2_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
 
 f_stim_input_obj = open(myfilename1,'w')
 f_stim_input_obj.write("""Stimulation input, sampling frequency 4000 Hz.
@@ -38,7 +40,7 @@ while True:
         output = ser.readline()
         if len(output) >= 2000:
             f_stim_input_obj.write(output)
-            print output
+            #print output
         elif len(output) >= 200:
             f_force_response_obj.write(output)
             print output

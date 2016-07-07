@@ -41,7 +41,7 @@ const int ens_DOWN_pin = 47;
 //int movement_onset_pin = 24; 
 int stim_received_LED_pin = 27;    
 int end_of_stim_LED_pin  = 31;    // Use to indicate end of trial 
-int analog_force_sensor_pin = A15; // A15 is not bad -- just loose connection 
+int analog_force_sensor_pin = A7; // A15 is not bad -- just loose connection 
 int analog_stim_voltage_pin = A8; 
 int AIN1_pin = 5;     // Negative input pin of Analog comparator; Positive pin is internal reference = 1.1V
 //int ledPin = 13;
@@ -158,7 +158,7 @@ void loop() {
         delay(keypress_interval_very_long);
     
         // Increase by 5 increments immediately
-        for(int i=1; i <= 5; i++){
+        for(int i=1; i <= 7; i++){
           digitalWrite(ens_UP_pin,LOW);
           delay(keypress_int_short);
           digitalWrite(ens_UP_pin,HIGH);
@@ -166,9 +166,9 @@ void loop() {
         }
         while(!stim_recvd){       // 1st measurement
           digitalWrite(end_of_stim_LED_pin, HIGH);
-          delay(300);
+          delay(100);
           digitalWrite(end_of_stim_LED_pin, LOW);
-          delay(300);  
+          delay(100);  
         }
         /*************************************************************DEBUGGING
          * for(int j = 1; j<=5; j++){
@@ -184,8 +184,8 @@ void loop() {
         */
         stim_recvd = false;
   
-        for(int inc=1; inc <= 12; inc++){
-          // Ramp Up Voltage by 2 increments upto 12 times (5 - 29 increments)
+        for(int inc=1; inc <= 15; inc++){
+          // Ramp Up Voltage by 2 increments upto 15 times (5 - 35 increments)
           for(int i=1; i <= 2; i++){
           digitalWrite(ens_UP_pin,LOW);
           delay(keypress_int_short);
@@ -194,27 +194,27 @@ void loop() {
           }
     
           // Wait for stim pulse to arrive 
-          while(!stim_recvd){         // (2-13 measurements)
+          while(!stim_recvd){         // (2-16 measurements)
           digitalWrite(end_of_stim_LED_pin, HIGH);
-          delay(300);
+          delay(100);
           digitalWrite(end_of_stim_LED_pin, LOW);
-          delay(300);  
+          delay(100);  
           }
           stim_recvd = false;
         }
     
-        for(int inc=1; inc <= 12; inc++){
-          // Wait for stim pulse to arrive -- Read twice at increment 29
-          //while(!stim_recvd);     // (14-25 measurements)
-          while(!stim_recvd){         // (14-25 measurements)
+        for(int inc=1; inc <= 15; inc++){
+          // Wait for stim pulse to arrive -- Read twice at increment 35
+          //while(!stim_recvd);     // (17-31 measurements)
+          while(!stim_recvd){         // (17-31 measurements)
           digitalWrite(end_of_stim_LED_pin, HIGH);
-          delay(300);
+          delay(100);
           digitalWrite(end_of_stim_LED_pin, LOW);
-          delay(300);  
+          delay(100);  
           }
           stim_recvd = false;     
           
-          // Ramp Down Voltage by 2 decrements upto 12 times (29 - 5 decrements)
+          // Ramp Down Voltage by 2 decrements upto 15 times (35 - 5 decrements)
           for(int i=1; i <= 2; i++){
           digitalWrite(ens_DOWN_pin,LOW);
           delay(keypress_int_short);
@@ -223,12 +223,12 @@ void loop() {
           }
         }
   
-      //while(!stim_recvd);       // 26th measurement
-      while(!stim_recvd){         // (26th measurements)
+      //while(!stim_recvd);       // 32nd measurement
+      while(!stim_recvd){         // (32nd measurements)
           digitalWrite(end_of_stim_LED_pin, HIGH);
-          delay(300);
+          delay(100);
           digitalWrite(end_of_stim_LED_pin, LOW);
-          delay(300);  
+          delay(100);  
           }
       stim_recvd = false;  
           
