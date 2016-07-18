@@ -1,7 +1,9 @@
-//#include "Arduino.h"s
+//#include "Arduino.h"
 //#include "string.h"
 //#include "HardwareSerial.h"
 //#include "Wire.h"
+
+//#include "Average.h"
 
 // Pin Mappings EEG triggers <---> Arduino digital pins
 //                  S1       <--->      34
@@ -19,11 +21,10 @@ int EEG_S4_trigger = 30;
 int EEG_S8_trigger = 28;
 int EEG_S16_trigger = 26; // previously called, movement_onset_pin = 26; 
 
-
 int target_LED_pin = 27;    
 int error_LED_pin  = 31;    // Use to indicate false start 
 int analog_force_sensor_pin = A8; 
-int analog_stim_voltage_pin = A15; 
+//int analog_stim_voltage_pin = A15; 
 int Total_num_of_trials = 0;
 int ledPin = 13;
 
@@ -33,14 +34,28 @@ int ctc_mode_sampler_value = 2499; //  100 Hz timer1, ctc mode, prescalar = 1/64
 int trigger_duration = 53036; // trigger low for 200 ms; should be > sampling interval
 //int trigger_duration_ms = 200;
 
+/*
+ * Define global variables
+ */
 volatile float sample_time = 0;
 int trial_num = 0;
 volatile int force_sensor = 0;
-volatile int stim_voltage = 0;
+volatile float force_baseline_corrected = 0;
+volatile float current_baseline = 0;
+boolean valid_user_input = false;
+int user_input = 0;
+
 int stimulus_onset_value = 5; // whether trigger is high(5) or low(0) 
 int movement_onset_value = 5; // whether trigger is high(5) or low(0) 
 int target_reached_value = 5; // whether trigger is high(5) or low(0) 
-const int force_threshold = 70;
+int force_threshold = 10;   //change
+
+// On the fly baseline correction - Added 7-13-2016
+#define array_len( x )  ( sizeof( x ) / sizeof( *x ) )
+const int num_force_samples_reqd = 200; // @ 100Hz sampling freq, 200 samples = 2 sec.
+volatile int force_sample_counter = 0;
+volatile int force_response_array[num_force_samples_reqd];
+
 
 /* 
  *  ISR for Timer 1 - Sends serial data for logging to Python GUI
@@ -72,20 +87,29 @@ ISR(TIMER1_COMPA_vect){
   digitalWrite(ledPin, digitalRead(ledPin) ^ 1);
   sample_time += 0.01;
   force_sensor = analogRead(analog_force_sensor_pin);
-  stim_voltage = analogRead(analog_stim_voltage_pin);
+  //stim_voltage = analogRead(analog_stim_voltage_pin);
+  force_baseline_corrected = (float)force_sensor - current_baseline;
+  
   Serial.print(sample_time);
-  Serial.print(" ");
+  Serial.print(",");
   Serial.print(trial_num);
-  Serial.print(" ");
+  Serial.print(",");
   Serial.print(force_sensor);
-  Serial.print(" ");
-  Serial.print(stim_voltage);
-  Serial.print(" ");
+  Serial.print(",");
+  //Serial.print(stim_voltage);
+  Serial.print(force_baseline_corrected);                         // Added 7-13-2016
+  Serial.print(",");
   Serial.print(stimulus_onset_value);
-  Serial.print(" ");
-  Serial.print(movement_onset_value);
-  Serial.print(" ");
+  Serial.print(",");
+  Serial.print(movement_onset_value); 
+  Serial.print(",");
   Serial.println(target_reached_value);
+  
+  force_response_array[force_sample_counter] = force_sensor;     // Added 7-13-2016
+  force_sample_counter++;
+  if(force_sample_counter >= array_len(force_response_array)){
+    force_sample_counter = 0;
+  }
 }
 
 ISR(TIMER3_OVF_vect){
@@ -136,17 +160,52 @@ void setup() {
   pinMode(error_LED_pin, OUTPUT);  
   digitalWrite(error_LED_pin, LOW);
   pinMode(analog_force_sensor_pin, INPUT);                  // Force sensor
-  pinMode(analog_stim_voltage_pin, INPUT);                  // Electrical stimulation voltage sensor
+  //pinMode(analog_stim_voltage_pin, INPUT);                  // Electrical stimulation voltage sensor
 
   //Get user/python input for to start experiment
-  Serial.print("Enter number of trials. Waiting for Input....");
+  Serial.print("Enter number of trials (integers only). Waiting for Input....");
   while(Serial.available()==0);
   Total_num_of_trials = Serial.parseInt();  // Only accepts integers
   Serial.println(Total_num_of_trials);
-    
+/*
+  while(!valid_user_input){
+         Serial.println(F("Enter number of trials (3 - 25). Waiting for Input...."));
+         while (Serial.available() == 0); // Wait for user input
+         user_input = Serial.parseInt();  // Only accepts integers
+         if (user_input >= 3 && user_input <= 25){
+            Total_num_of_trials = Serial.parseInt();  // Only accepts integers
+            Serial.println(Total_num_of_trials);
+            valid_user_input = true;
+          }
+         else{
+            Serial.println(F("Invalid input !!"));
+          }
+     }
+  valid_user_input = false;
+*/  
+  //Serial.print("Enter force detection threshold (integers only). Waiting for Input....");
+  //while(Serial.available()==0);
+  //force_threshold = Serial.parseInt();  // Only accepts ints
+  //Serial.println(force_threshold);
+/*
+  while(!valid_user_input){
+         Serial.println(F("Enter force detection threshold (integers only, 10 - 200). Waiting for Input...."));
+         while (Serial.available() == 0); // Wait for user input
+         user_input = Serial.parseInt();  // Only accepts integers
+         if (user_input >= 10 && user_input <= 200){
+            force_threshold = Serial.parseInt();  // Only accepts integers
+            Serial.println(force_threshold);
+            valid_user_input = true;
+          }
+         else{
+            Serial.println(F("Invalid input !!"));
+          }
+     }
+  valid_user_input = false;
+*/    
   Serial.println("Force and trigger data from Arduino. Sampling rate = 100 Hz");
   Serial.println(" ");
-  Serial.println("time,trial_num,force,stim_voltage,stimulus_onset,movment_onset,grasp_released");   
+  Serial.println("time,trial_num,force,force_bc,stimulus_onset,movment_onset,grasp_released");   
      
   noInterrupts();           // disable all software interrupts
   // Timer 1 for reading values from all pins
@@ -194,6 +253,14 @@ void loop() {
   // put your main code here, to run repeatedly:
   for (trial_num=1; trial_num<= Total_num_of_trials; trial_num++){
     delay(random(4000,6001));     // Fixation - random seconds
+
+    // Recalculate force baseline
+    //current_baseline = maximum(force_response_array,array_len(force_response_array));
+    long sum_baseline_sample = 0L;
+    for (int samp=0; samp <= array_len(force_response_array); samp++){
+      sum_baseline_sample += force_response_array[samp];
+    }
+    current_baseline = (float) sum_baseline_sample/array_len(force_response_array);
     
     // Stimulus - Send stimulus_onset trigger; Turn LED ON; Start monitoring force
     digitalWrite(EEG_S2_trigger,LOW);
@@ -204,7 +271,8 @@ void loop() {
         
     // Movement detected - Turn LED OFF; Send movement_onset trigger;
     //delay(3000);        // movement detected
-    while(force_sensor < force_threshold);
+    //while(force_sensor < force_threshold);
+    while(force_baseline_corrected < (float)force_threshold);                                                       // Added 7-13-2016
     digitalWrite(target_LED_pin,LOW);  // Turn OFF green led, irrespective of whether trial is aborted or not
     
     if ((sample_time - previous_sample_time) > 2){
@@ -213,7 +281,8 @@ void loop() {
       //TCCR4B = 0x04;
       TCCR3B = 0x04;
           
-      while(force_sensor >= force_threshold){       // wait for subject to relax    
+      //while(force_sensor >= force_threshold){       // wait for subject to relax    
+      while(force_baseline_corrected > (float)force_threshold){                                                       // Added 7-13-2016
         digitalWrite(target_LED_pin,HIGH);
         delay(200);
         digitalWrite(target_LED_pin,LOW);      
@@ -229,7 +298,8 @@ void loop() {
       // Don't generate any triggers
       // Blink error led until sensor is released
 
-      while(force_sensor >= force_threshold){       // wait for subject to relax    
+      //while(force_sensor >= force_threshold){       // wait for subject to relax    
+      while(force_baseline_corrected > (float)force_threshold){                                                       // Added 7-13-2016
         digitalWrite(error_LED_pin,HIGH);
         delay(200);
         digitalWrite(error_LED_pin,LOW);      
