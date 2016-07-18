@@ -9,26 +9,21 @@ import logging, os
 #print content
 
 folder_path = os.getcwd()
+Subject_name ='TT'
+Session_num = 1
+Block_num = 0 #change
 
 #myfilename1 = os.getcwd() + '/NJBT_FD_impulse_input_block5_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
 #myfilename2 = os.getcwd() + '/NJBT_FD_impulse_response_block5_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
-myfilename1 = os.getcwd() + '/NJBT_FPB_impulse_input_block2_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
-myfilename2 = os.getcwd() + '/NJBT_FPB_impulse_response_block2_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
+myfilename1 = folder_path + '/' + Subject_name + '_session' + str(Session_num) + '_block' + str(Block_num) + '_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
 
-f_stim_input_obj = open(myfilename1,'w')
-f_stim_input_obj.write("""Stimulation input, sampling frequency 4000 Hz.
-File created on: """)
-f_stim_input_obj.write(time.strftime("%m-%d-%Y_%H:%M:%S")+'\r\n')
-
-f_force_response_obj = open(myfilename2,'w')
+f_force_response_obj = open(myfilename1,'w')
 f_force_response_obj.write("""Force response, sampling frequency 100 Hz.
 File created on: """)
 f_force_response_obj.write(time.strftime("%m-%d-%Y_%H:%M:%S")+'\r\n')
 
-#logging.basicConfig(filename = myfilename + time.strftime("%m-%d-%Y_%H_%M_%S.txt"),loglevel = logging.NOTSET, format = '%(message)s')
-
 # ls -al /dev/tty*  ---- To list usb-com port 
-ser = serial.Serial('/dev/ttyACM0',115200, timeout = 1) # Arduino
+ser = serial.Serial('/dev/ttyACM1',115200, timeout = 1) # Arduino
 #ser = serial.Serial('/dev/ttyUSB0',19200, timeout = 1) # ENS2020
     
 if ser.inWaiting() != 0:
@@ -38,10 +33,7 @@ command = ""
 while True:
     while ser.inWaiting() != 0:
         output = ser.readline()
-        if len(output) >= 2000:
-            f_stim_input_obj.write(output)
-            #print output
-        elif len(output) >= 200:
+        if len(output) >= 10:
             f_force_response_obj.write(output)
             print output
         else:
@@ -60,7 +52,5 @@ while True:
             ser.write(command + "\n")
             #print "\ncommand sent"       
 ser.close()
-#f_obj.close()
-f_stim_input_obj.close()
 f_force_response_obj.close()
 print "End of program."
