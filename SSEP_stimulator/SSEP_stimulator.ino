@@ -1,5 +1,5 @@
 /*
- * Program to delivering 125 stim pulses
+ * Program to delivering 250 stim pulses
  * 
  * ENS2020 Pin configuration    Arduino MEGA 256 Pins
  * 1 - GND                                GND (pin 44 unused)
@@ -181,7 +181,7 @@ void setup() {
                     Serial.print(F("Enter number of stimulation bouts required (5-250): "));
                     while (Serial.available() == 0); // Wait for user input
                     user_input = Serial.parseInt();  // Only accepts integers
-                    if (user_input > 5 && user_input < 250){
+                    if (user_input > 5 && user_input < 251){
                       Number_of_stim_bouts = user_input;
                       Serial.println(Number_of_stim_bouts);
                       EEPROM.updateByte(EEPROM_address_Number_of_stim_bouts,Number_of_stim_bouts);
