@@ -9,9 +9,9 @@ import logging, os
 #print content
 
 folder_path = os.getcwd()
-Subject_name ='TT'
-Session_num = 1
-Block_num = 0 #change
+Subject_name ='VARL'
+Session_num = 2
+Block_num = 4 #change
 
 #myfilename1 = os.getcwd() + '/NJBT_FD_impulse_input_block5_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
 #myfilename2 = os.getcwd() + '/NJBT_FD_impulse_response_block5_' + time.strftime("%m-%d-%Y_%H_%M_%S.txt")
@@ -23,7 +23,7 @@ File created on: """)
 f_force_response_obj.write(time.strftime("%m-%d-%Y_%H:%M:%S")+'\r\n')
 
 # ls -al /dev/tty*  ---- To list usb-com port 
-ser = serial.Serial('/dev/ttyACM1',115200, timeout = 1) # Arduino
+ser = serial.Serial('/dev/ttyACM0',115200, timeout = 1) # Arduino
 #ser = serial.Serial('/dev/ttyUSB0',19200, timeout = 1) # ENS2020
     
 if ser.inWaiting() != 0:
