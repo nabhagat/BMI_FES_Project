@@ -1,5 +1,5 @@
 /*
- * Program to delivering 250 stim pulses
+ * Program to delivering 125 stim pulses
  * 
  * ENS2020 Pin configuration    Arduino MEGA 256 Pins
  * 1 - GND                                GND (pin 44 unused)
@@ -79,14 +79,13 @@ void setup() {
   pinMode(ens_OFF_pin, INPUT_PULLUP);
   pinMode(ens_FWD_pin, INPUT_PULLUP);
   pinMode(ens_BWD_pin, INPUT_PULLUP);
-
   // Added 10-13-2016
   pinMode(ens_DOWN_pin, INPUT_PULLUP); 
   pinMode(ens_UP_pin, INPUT_PULLUP);
   pinMode(ens_MENU_pin, INPUT_PULLUP);
   pinMode(ens_SEL_pin, INPUT_PULLUP);
- 
 
+    
   // Configure Arduino LED, ADC and Analog Comparator pins
   /////Inputs
   pinMode(AIN1_pin, INPUT);
@@ -176,10 +175,10 @@ void setup() {
             user_selection = read_user_response(); Serial.println(char(user_selection));
             if (user_selection == 'y' || user_selection == 'Y'){
                 while(!valid_user_input){
-                    Serial.print(F("Enter number of stimulation bouts required (5-250): "));
+                    Serial.print(F("Enter number of stimulation bouts required (5-150): "));
                     while (Serial.available() == 0); // Wait for user input
                     user_input = Serial.parseInt();  // Only accepts integers
-                    if (user_input > 5 && user_input < 251){
+                    if (user_input > 5 && user_input < 150){
                       Number_of_stim_bouts = user_input;
                       Serial.println(Number_of_stim_bouts);
                       EEPROM.updateByte(EEPROM_address_Number_of_stim_bouts,Number_of_stim_bouts);
@@ -196,10 +195,10 @@ void setup() {
     case 2: 
             Serial.println(F(", Ready to run stimulator"));
             while(!valid_user_input){
-                   Serial.println(F("Enter number of voltage increments (10-35): "));
+                   Serial.println(F("Enter number of voltage increments (10-40): "));
                    while (Serial.available() == 0); // Wait for user input
                    user_input = Serial.parseInt();  // Only accepts integers
-                   if (user_input >= 10 && user_input <= 40){
+                   if (user_input >= 10 && user_input <= 41){
                       Number_of_voltage_increments = user_input;
                       Serial.println(Number_of_voltage_increments);
                       valid_user_input = true;
@@ -219,7 +218,7 @@ void setup() {
             digitalWrite(ens_MENU_pin, HIGH);
             pinMode(ens_SEL_pin, OUTPUT);
             digitalWrite(ens_SEL_pin, HIGH);
-            
+    
             //Turn ON the stimulator
             Serial.print(F("Starting stimulator and trigger clock. Adjusting voltage"));
             //TCCR1B = 0x04; // Generate trigger clock using TIMER 1 - Added 06-28-2016
@@ -256,7 +255,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   ACSR |= (1 << ACI); // Clear pending interrupts
   ACSR |= (1 << ACIE);      // Now enable analog comaprator interrupt
-  // Wait for 200 trials
+  // Wait for 5 trials
   for (int trial_no = 1; trial_no <= Number_of_stim_bouts; trial_no++) {
     while (!stim_recvd) {     // 1st measurement
       digitalWrite(end_of_stim_LED_pin, HIGH);
@@ -264,7 +263,7 @@ void loop() {
       digitalWrite(end_of_stim_LED_pin, LOW);
       delay(100);
     }
-    delay(100); // time in milliseconds. Delay for 100 ms. // change
+    delay(2000);
     stim_recvd = false;
     
     ACSR |= (1 << ACIE); // Need to ensure that sencond stimulus doesn't appear with 2 seconds of first stimulus
@@ -286,7 +285,6 @@ ISR(ANALOG_COMP_vect) {
 
   if (!stim_recvd){
     digitalWrite(EEG_R128_trigger,LOW);    // Set trigger
-    TCCR3B = 0x04;                  // Start Timer3 
     stim_recvd = true;
     stim_counter++;
     //Serial.println("Stimulation bout " + String(stim_counter) + " of " + String(Number_of_stim_bouts) + " received");
