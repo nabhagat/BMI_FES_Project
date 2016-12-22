@@ -5,9 +5,7 @@ Created on Wed Dec 14 17:14:09 2016
 @author: nikunj
 """
 # Functions to be used with impulse recruitment curve.py
- 
-reload(csv)
- 
+
 # <codecell>    
 # Clear all variables - MATLAB equivalent 
 def clear_all():
@@ -19,59 +17,11 @@ def clear_all():
         if 'module' in str(globals()[var]): continue
 
         del globals()[var]
-if __name__ == "__main__":
-    clear_all()
+#if __name__ == "__main__":
+#    clear_all()
  
  
-# <codecell>    
-# Function to read data from sim_input and impulse files and return as arrays
-def read_csv_file_convert_data(input_filename, response_filename, data_dir = ''):
-    if len(input_filename) != len(response_filename):
-        raise TypeError("Unequal number of input and response files")
-    
-    input_data = []
-    response_data = []
-    
-    # If multiple files referred then append data
-    for file_name in input_filename:
-        with open(data_dir + file_name,'r') as input_file:
-            reader = csv.reader(input_file)
-            reader.next() # Skip 1st row, which is header
-            reader.next() # Skip 2nd row, which is header
-            #input_data = [itr_row for itr_row in reader]
-            for itr_row in reader:
-                input_data.append(itr_row)
-                
-    for file_name in response_filename:
-        with open(data_dir + file_name,'r') as response_file:
-            reader = csv.reader(response_file)
-            reader.next() # Skip 1st row, which is header
-            reader.next() # Skip 2nd row, which is header
-            #input_data = [itr_row for itr_row in reader]
-            for itr_row in reader:
-                response_data.append(itr_row)
-    
-    # convert list to array
-    # Convert ADC counts to integers
-    # Force sensor equation = 20.21 x + 0.02775
-    response_data = np.array(response_data,float)
-    response_data = (response_data*5/float(1023))*20.21 + 0.02775 # Unit: Newtons
-    
-    # convert list to array
-    # Convert ADC counts to integers
-    # Stim input equation = 15x (Voltage divider ratio = 1/15)
-    input_data = np.array(input_data,float)
-    input_data = (input_data*5/float(1023))*15 # Unit: Volts
-    #stim_input_value = stim_input[:,1]
-    #plt.plot(stim_input[0:32,1],'-or')
-    #plt.hold("ON")
-    #plt.plot(stim_input[32:,1],'-ob')
-    
-    
-    print('Files read, input size = ' + str(len(input_data)) + ', response size = ' + str(len(response_data))) 
-                
-    return input_data, response_data
-    
+
 # <codecell>
 
 def peak_baseline_normalize_force(force_response):

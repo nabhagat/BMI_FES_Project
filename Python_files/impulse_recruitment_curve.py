@@ -3,7 +3,7 @@
 
 # <codecell> Import the necessary project files
 
-#import csv
+import csv
 import scipy as sp
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,10 +16,59 @@ import fnmatch
 import os
 import scipy.optimize as sp_optimize
    
-import impulse_recruitment_curve_functions as func
+from impulse_recruitment_curve_functions import *
 
 #func.clear_all()
-
+# <codecell>    
+# Function to read data from sim_input and impulse files and return as arrays
+def read_csv_file_convert_data(input_filename, response_filename, data_dir = ''):
+      
+    if len(input_filename) != len(response_filename):
+        raise TypeError("Unequal number of input and response files")
+    
+    input_data = []
+    response_data = []
+    
+    # If multiple files referred then append data
+    for file_name in input_filename:
+        with open(data_dir + file_name,'r') as input_file:
+            reader = csv.reader(input_file)
+            reader.next() # Skip 1st row, which is header
+            reader.next() # Skip 2nd row, which is header
+            #input_data = [itr_row for itr_row in reader]
+            for itr_row in reader:
+                input_data.append(itr_row)
+                
+    for file_name in response_filename:
+        with open(data_dir + file_name,'r') as response_file:
+            reader = csv.reader(response_file)
+            reader.next() # Skip 1st row, which is header
+            reader.next() # Skip 2nd row, which is header
+            #input_data = [itr_row for itr_row in reader]
+            for itr_row in reader:
+                response_data.append(itr_row)
+    
+    # convert list to array
+    # Convert ADC counts to integers
+    # Force sensor equation = 20.21 x + 0.02775
+    response_data = np.array(response_data,float)
+    response_data = (response_data*5/float(1023))*20.21 + 0.02775 # Unit: Newtons
+    
+    # convert list to array
+    # Convert ADC counts to integers
+    # Stim input equation = 15x (Voltage divider ratio = 1/15)
+    input_data = np.array(input_data,float)
+    input_data = (input_data*5/float(1023))*15 # Unit: Volts
+    #stim_input_value = stim_input[:,1]
+    #plt.plot(stim_input[0:32,1],'-or')
+    #plt.hold("ON")
+    #plt.plot(stim_input[32:,1],'-ob')
+    
+    
+    print('Files read, input size = ' + str(len(input_data)) + ', response size = ' + str(len(response_data))) 
+                
+    return input_data, response_data
+    
 # <codecell>
 # Subject information and global variables
 Subject_name = 'NJBT'
@@ -61,14 +110,14 @@ for file in os.listdir(data_files_dir):
             cv_input_filename.append(file)        
 
 # Read impulse response data, convert units 
-impulse_input, impulse_response = func.read_csv_file_convert_data(impulse_input_filename, impulse_response_filename, data_files_dir)
-cv_stim_input, cv_force_response = func.read_csv_file_convert_data(cv_input_filename, cv_response_filename, data_files_dir)
+impulse_input, impulse_response = read_csv_file_convert_data(impulse_input_filename, impulse_response_filename, data_files_dir)
+cv_stim_input, cv_force_response = read_csv_file_convert_data(cv_input_filename, cv_response_filename, data_files_dir)
 
 cv_t_force = np.arange(0, cv_force_response.shape[1]/float(Fs_force), 1/float(Fs_force))
 cv_t_stim = np.arange(0, cv_stim_input.shape[1]/float(Fs_stim), 1/float(Fs_stim))
 
 # Normalize measured force response
-cv_force_response_peak, cv_force_response_norm, cv_force_response_baseline_correct = func.peak_baseline_normalize_force(cv_force_response)
+cv_force_response_peak, cv_force_response_norm, cv_force_response_baseline_correct = peak_baseline_normalize_force(cv_force_response)
 
 # For observed traces, find force traces with peak >= 3 N - Why?
 cv_force_response = np.delete(cv_force_response,np.where(cv_force_response_peak < 3),axis=0)
