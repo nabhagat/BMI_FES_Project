@@ -79,15 +79,13 @@ void setup() {
   pinMode(ens_OFF_pin, INPUT_PULLUP);
   pinMode(ens_FWD_pin, INPUT_PULLUP);
   pinMode(ens_BWD_pin, INPUT_PULLUP);
-  
-  pinMode(ens_DOWN_pin, OUTPUT);
-  digitalWrite(ens_DOWN_pin, HIGH);
-  pinMode(ens_UP_pin, OUTPUT);
-  digitalWrite(ens_UP_pin, HIGH);
-  pinMode(ens_MENU_pin, OUTPUT);
-  digitalWrite(ens_MENU_pin, HIGH);
-  pinMode(ens_SEL_pin, OUTPUT);
-  digitalWrite(ens_SEL_pin, HIGH);
+
+  // Added 10-13-2016
+  pinMode(ens_DOWN_pin, INPUT_PULLUP); 
+  pinMode(ens_UP_pin, INPUT_PULLUP);
+  pinMode(ens_MENU_pin, INPUT_PULLUP);
+  pinMode(ens_SEL_pin, INPUT_PULLUP);
+ 
 
   // Configure Arduino LED, ADC and Analog Comparator pins
   /////Inputs
@@ -211,7 +209,17 @@ void setup() {
                     }
                }
             valid_user_input = false;
-                
+
+            //Configure output pins here - Added 10-12-2016
+            pinMode(ens_DOWN_pin, OUTPUT);
+            digitalWrite(ens_DOWN_pin, HIGH);
+            pinMode(ens_UP_pin, OUTPUT);
+            digitalWrite(ens_UP_pin, HIGH);
+            pinMode(ens_MENU_pin, OUTPUT);
+            digitalWrite(ens_MENU_pin, HIGH);
+            pinMode(ens_SEL_pin, OUTPUT);
+            digitalWrite(ens_SEL_pin, HIGH);
+            
             //Turn ON the stimulator
             Serial.print(F("Starting stimulator and trigger clock. Adjusting voltage"));
             //TCCR1B = 0x04; // Generate trigger clock using TIMER 1 - Added 06-28-2016
@@ -232,6 +240,10 @@ void setup() {
               digitalWrite(ens_UP_pin, HIGH);
               delay(keypress_int_short);
             }
+            // Chang pin modes for Up and Down pins so that user can manually change it - Added 10-13-2016
+            pinMode(ens_DOWN_pin, INPUT_PULLUP);
+            pinMode(ens_UP_pin, INPUT_PULLUP);
+            
             Serial.println();
             Serial.println(F("Starting counter")); 
             break;

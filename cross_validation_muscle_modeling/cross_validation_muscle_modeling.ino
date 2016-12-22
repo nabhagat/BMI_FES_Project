@@ -18,13 +18,10 @@
 
 const int ens_ON_pin = 53;
 const int ens_OFF_pin = 49;
-
 const int ens_MENU_pin = 52;
 const int ens_SEL_pin = 46;
-
 const int ens_FWD_pin = 50;
 const int ens_BWD_pin = 48;
-
 const int ens_UP_pin = 51;
 const int ens_DOWN_pin = 47;
 
@@ -41,8 +38,8 @@ const int ens_DOWN_pin = 47;
 //int movement_onset_pin = 24;
 int stim_received_LED_pin = 27;
 int end_of_stim_LED_pin  = 31;    // Use to indicate end of trial
-int analog_force_sensor_pin = A7; // A15 is not bad -- just loose connection
-int analog_stim_voltage_pin = A8;
+int analog_force_sensor_pin = A8; // A15 is not bad -- just loose connection
+int analog_stim_voltage_pin = A6;
 int AIN1_pin = 5;     // Negative input pin of Analog comparator; Positive pin is internal reference = 1.1V
 //int ledPin = 13;
 int test_trigger_pin = 12;
@@ -63,8 +60,8 @@ int test_trigger_pin = 12;
 // 3036 - 1Hz; //34286 - 2Hz; //53036 - 5 Hz; //64911 - 100 Hz; // 65411 - 500 Hz  // preload timer 65536-16MHz/256/2Hz
 const int force_sampling_rate = 64911; // 100 Hz sampling with prescalar = 1/256
 const int stim_sampling_rate = 61536; // 4 Khz sampling with no prescalar
-const int num_stim_samples_reqd = 2500; // @ 4Khz sampling freq, 2500 samples = 625 ms data
-const int num_force_samples_reqd = 200; // @ 100Hz sampling freq, 200 samples = 2 sec.
+const int num_stim_samples_reqd = 3500; // @ 4Khz sampling freq, 3500 samples = 875 ms, 2500 samples = 625 ms data
+const int num_force_samples_reqd = 135; // @ 100Hz sampling freq, 135 samples = 1.35 sec, 200 samples = 2 sec.
 const int keypress_interval_very_long = 500;
 const int keypress_interval_long = 200;
 const int keypress_int_short = 150;
@@ -84,10 +81,10 @@ void setup() {
   Serial.begin(115200);        // Turn on the Serial Port
 
   // Configure ENS - Set MENU, SEL, UP and DOWN pins as output and set them to HIGH; rest as input
-  pinMode(ens_ON_pin, INPUT);
-  pinMode(ens_OFF_pin, INPUT);
-  pinMode(ens_FWD_pin, INPUT);
-  pinMode(ens_BWD_pin, INPUT);
+  pinMode(ens_ON_pin, INPUT_PULLUP);
+  pinMode(ens_OFF_pin, INPUT_PULLUP);
+  pinMode(ens_FWD_pin, INPUT_PULLUP);
+  pinMode(ens_BWD_pin, INPUT_PULLUP);
 
   pinMode(ens_DOWN_pin, OUTPUT);
   digitalWrite(ens_DOWN_pin, HIGH);
@@ -139,7 +136,7 @@ void setup() {
   interrupts();             // enable all software interrupts
 
   //Get user/python input for to start experiment
-  Serial.print("Enter number of model validation stimulus trains (1-10). Waiting for Input....");
+  Serial.print("Enter");// number of model validation stimulus trains (1-10). Waiting for Input....");
   while (Serial.available() == 0);
   Total_num_of_stim_repetitions = Serial.parseInt();  // Only accepts integers
   Serial.println(Total_num_of_stim_repetitions);
@@ -160,7 +157,7 @@ void loop() {
     delay(keypress_interval_very_long);
 
     // Increase by 10 increments immediately
-    for (int i = 1; i <= 10; i++) {
+    for (int i = 1; i <= 25; i++) {
       digitalWrite(ens_UP_pin, LOW);
       delay(keypress_int_short);
       digitalWrite(ens_UP_pin, HIGH);
@@ -181,7 +178,7 @@ void loop() {
     }
 
     // Increase again by 10 increments immediately
-    for (int i = 1; i <= 10; i++) {
+    for (int i = 1; i <= 5; i++) {
       digitalWrite(ens_UP_pin, LOW);
       delay(keypress_int_short);
       digitalWrite(ens_UP_pin, HIGH);
@@ -242,15 +239,15 @@ void loop() {
     delay(keypress_interval_very_long);
     digitalWrite(ens_MENU_pin, HIGH);
 
-    delay(1000);
-    Serial.println("");
+    delay(3000);
+    /*Serial.println("");
     Serial.println("Rep " + String(rep_num) + "of " + String(Total_num_of_stim_repetitions) + " completed. Continue? [y/n]: ");
     while (Serial.read() != 'y') {
       digitalWrite(end_of_stim_LED_pin, HIGH);
       delay(1000);
       digitalWrite(end_of_stim_LED_pin, LOW);
       delay(1000);
-    }
+    }*/
     /*if (Serial.read() == 'n'){
       Serial.println("Exiting program");
       break;
@@ -258,7 +255,7 @@ void loop() {
 
   }
   digitalWrite(end_of_stim_LED_pin, HIGH);
-  //Serial.println("q"); // Exit python program
+  Serial.println("q"); // Exit python program
   //Do not disable all interrupts
   while (1);
 }

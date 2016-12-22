@@ -18,13 +18,10 @@
 
 const int ens_ON_pin = 53;
 const int ens_OFF_pin = 49;
-
 const int ens_MENU_pin = 52;
 const int ens_SEL_pin = 46;
-
 const int ens_FWD_pin = 50;
 const int ens_BWD_pin = 48;
-
 const int ens_UP_pin = 51;
 const int ens_DOWN_pin = 47;
 
@@ -41,8 +38,8 @@ const int ens_DOWN_pin = 47;
 //int movement_onset_pin = 24; 
 int stim_received_LED_pin = 27;    
 int end_of_stim_LED_pin  = 31;    // Use to indicate end of trial 
-int analog_force_sensor_pin = A7; // A15 is not bad -- just loose connection 
-int analog_stim_voltage_pin = A8; 
+int analog_force_sensor_pin = A8; // A15 is not bad -- just loose connection 
+int analog_stim_voltage_pin = A6; 
 int AIN1_pin = 5;     // Negative input pin of Analog comparator; Positive pin is internal reference = 1.1V
 //int ledPin = 13;
 int test_trigger_pin = 12;
@@ -82,10 +79,10 @@ void setup() {
   Serial.begin(115200);        // Turn on the Serial Port
   
   // Configure ENS - Set MENU, SEL, UP and DOWN pins as output and set them to HIGH; rest as input
-  pinMode(ens_ON_pin,INPUT);
-  pinMode(ens_OFF_pin,INPUT);
-  pinMode(ens_FWD_pin,INPUT);
-  pinMode(ens_BWD_pin,INPUT);
+  pinMode(ens_ON_pin,INPUT_PULLUP);
+  pinMode(ens_OFF_pin,INPUT_PULLUP);
+  pinMode(ens_FWD_pin,INPUT_PULLUP);
+  pinMode(ens_BWD_pin,INPUT_PULLUP);
   
   pinMode(ens_DOWN_pin,OUTPUT);
   digitalWrite(ens_DOWN_pin,HIGH);
@@ -138,8 +135,8 @@ void setup() {
 
   //Get user/python input for to start experiment
   Serial.print("Enter number of repetitions of stimulus train. Waiting for Input....");
-  while(Serial.available()==0);
-  Total_num_of_stim_repetitions = Serial.parseInt();  // Only accepts integers
+  while(Serial.available()==0); 
+  Total_num_of_stim_repetitions = Serial.parseInt();  // Only accepts integers 
   Serial.println(Total_num_of_stim_repetitions);
   ACSR |= (1 << ACIE);      // Now enable analog comaprator interrupt
 }
@@ -157,13 +154,14 @@ void loop() {
         digitalWrite(ens_SEL_pin,HIGH);
         delay(keypress_interval_very_long);
     
-        // Increase by 5 increments immediately
+        // Increase by 7 increments immediately
         for(int i=1; i <= 7; i++){
           digitalWrite(ens_UP_pin,LOW);
           delay(keypress_int_short);
           digitalWrite(ens_UP_pin,HIGH);
           delay(keypress_int_short);
         }
+       
         while(!stim_recvd){       // 1st measurement
           digitalWrite(end_of_stim_LED_pin, HIGH);
           delay(100);
@@ -183,9 +181,9 @@ void loop() {
         while(!stim_recvd);
         */
         stim_recvd = false;
-  
-        for(int inc=1; inc <= 15; inc++){
-          // Ramp Up Voltage by 2 increments upto 15 times (5 - 35 increments)
+        
+        for(int inc=1; inc <= 17; inc++){
+          // Ramp Up Voltage by 2 increments upto 17 times (8 - 40 increments)
           for(int i=1; i <= 2; i++){
           digitalWrite(ens_UP_pin,LOW);
           delay(keypress_int_short);
@@ -194,7 +192,7 @@ void loop() {
           }
     
           // Wait for stim pulse to arrive 
-          while(!stim_recvd){         // (2-16 measurements)
+          while(!stim_recvd){         // (2-17 measurements)
           digitalWrite(end_of_stim_LED_pin, HIGH);
           delay(100);
           digitalWrite(end_of_stim_LED_pin, LOW);
@@ -204,9 +202,8 @@ void loop() {
         }
     
         for(int inc=1; inc <= 15; inc++){
-          // Wait for stim pulse to arrive -- Read twice at increment 35
-          //while(!stim_recvd);     // (17-31 measurements)
-          while(!stim_recvd){         // (17-31 measurements)
+          // Wait for stim pulse to arrive -- Read twice at increment 40
+          while(!stim_recvd){         // (40-8 measurements)
           digitalWrite(end_of_stim_LED_pin, HIGH);
           delay(100);
           digitalWrite(end_of_stim_LED_pin, LOW);
@@ -214,7 +211,7 @@ void loop() {
           }
           stim_recvd = false;     
           
-          // Ramp Down Voltage by 2 decrements upto 15 times (35 - 5 decrements)
+          // Ramp Down Voltage by 2 decrements upto 15 times (40 - 8 decrements)
           for(int i=1; i <= 2; i++){
           digitalWrite(ens_DOWN_pin,LOW);
           delay(keypress_int_short);
@@ -240,6 +237,7 @@ void loop() {
     digitalWrite(end_of_stim_LED_pin, HIGH);
     //Serial.println("q"); // Exit python program
     //Do not disable all interrupts
+    Serial.println("q");
     while(1);
 }
 
